@@ -93,12 +93,23 @@ public class JenkinsHash {
 	/**
 	 * See {@link #hash(byte[], long)}
 	 * 
+	 * @return 32-bit hash value for the buffer. It is a long because there is no unsigned int in Java.
 	 * @param buffer
 	 *            Byte array that we are hashing on.
-	 * @return Hash value for the buffer.
 	 */
 	public static long hash(byte[] buffer) {
 		return hash(buffer, 0);
+	}
+
+	/**
+	 * See {@link #hash(byte[], long)}
+	 * 
+	 * @return 32-bit hash value for the string. It is a long because there is no unsigned int in Java.
+	 * @param str
+	 *            String that we are calling {@link String#getBytes()} on and delegating to {@link #hash(byte[], long)}.
+	 */
+	public static long hash(String str) {
+		return hash(str.getBytes(), 0);
 	}
 
 	/**
