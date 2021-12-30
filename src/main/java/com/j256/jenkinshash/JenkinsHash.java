@@ -7,7 +7,7 @@ package com.j256.jenkinshash;
  * purposes.
  *
  * You may use this code any way you wish, private, educational, or commercial. It's free. See:
- * http://burtleburtle.net/bob/hash/doobs.html
+ * https://burtleburtle.net/bob/hash/doobs.html
  *
  * Java port by Gray Watson http://256stuff.com/gray/
  */
@@ -15,25 +15,26 @@ public class JenkinsHash {
 
 	// max value to limit it to 4 bytes
 	private static final long MAX_VALUE = 0xFFFFFFFFL;
+	// the golden ratio, an arbitrary value
+	private static final long GOLDEN_RATIO_VALUE = 0x09E3779B9L;
 
 	/**
 	 * Hash a variable-length key into a 32-bit value. Every bit of the key affects every bit of the return value. Every
 	 * 1-bit and 2-bit delta achieves avalanche. The best hash table sizes are powers of 2.
 	 *
+	 * @return 32-bit hash value for the buffer. It is a long because there is no unsigned int in Java.
 	 * @param buffer
 	 *            Byte array that we are hashing on.
 	 * @param initialValue
 	 *            Initial value of the hash if we are continuing from a previous run. 0 if none.
-	 * @return Hash value for the buffer.
 	 */
-	public long hash(byte[] buffer, long initialValue) {
-		int len, pos;
+	public static long hash(byte[] buffer, long initialValue) {
 
-		// first two values are the golden ratio; arbitrary values
-		HashInfo info = new HashInfo(0x09e3779b9L, 0x09e3779b9L, initialValue);
+		HashInfo info = new HashInfo(GOLDEN_RATIO_VALUE, GOLDEN_RATIO_VALUE, initialValue);
 
 		// handle most of the key
-		pos = 0;
+		int pos = 0;
+		int len;
 		for (len = buffer.length; len >= 12; len -= 12) {
 			info.a = add(info.a, fourByteToLong(buffer, pos));
 			info.b = add(info.b, fourByteToLong(buffer, pos + 4));
@@ -90,20 +91,20 @@ public class JenkinsHash {
 	}
 
 	/**
-	 * See hash(byte[] buffer, long initialValue)
+	 * See {@link #hash(byte[], long)}
 	 * 
 	 * @param buffer
 	 *            Byte array that we are hashing on.
 	 * @return Hash value for the buffer.
 	 */
-	public long hash(byte[] buffer) {
+	public static long hash(byte[] buffer) {
 		return hash(buffer, 0);
 	}
 
 	/**
 	 * Convert a byte into a long value without making it negative.
 	 */
-	private long byteToLong(byte b) {
+	private static long byteToLong(byte b) {
 		long val = b & 0x7F;
 		if ((b & 0x80) != 0) {
 			val += 128;
@@ -114,22 +115,24 @@ public class JenkinsHash {
 	/**
 	 * Do addition and turn into 4 bytes.
 	 */
-	private long add(long val, long add) {
+	private static long add(long val, long add) {
 		return (val + add) & MAX_VALUE;
 	}
 
 	/**
 	 * Convert 4 bytes from the buffer at offset into a long value.
 	 */
-	private long fourByteToLong(byte[] bytes, int offset) {
-		return (byteToLong(bytes[offset + 0]) + (byteToLong(bytes[offset + 1]) << 8)
-				+ (byteToLong(bytes[offset + 2]) << 16) + (byteToLong(bytes[offset + 3]) << 24));
+	private static long fourByteToLong(byte[] bytes, int offset) {
+		return ((byteToLong(bytes[offset + 0]) << 0) //
+				+ (byteToLong(bytes[offset + 1]) << 8) //
+				+ (byteToLong(bytes[offset + 2]) << 16) //
+				+ (byteToLong(bytes[offset + 3]) << 24));
 	}
 
 	/**
 	 * Mix up the values in the hash function.
 	 */
-	private void hashMix(HashInfo info) {
+	private static void hashMix(HashInfo info) {
 		info.a = subtract(info.a, info.b);
 		info.a = subtract(info.a, info.c);
 		info.a = xor(info.a, info.c >> 13);
@@ -162,21 +165,21 @@ public class JenkinsHash {
 	/**
 	 * Left shift val by shift bits. Cut down to 4 bytes.
 	 */
-	private long leftShift(long val, int shift) {
+	private static long leftShift(long val, int shift) {
 		return (val << shift) & MAX_VALUE;
 	}
 
 	/**
 	 * Left shift val by shift bits and turn in 4 bytes.
 	 */
-	private long xor(long val, long xor) {
+	private static long xor(long val, long xor) {
 		return (val ^ xor) & MAX_VALUE;
 	}
 
 	/**
 	 * Do subtraction and turn into 4 bytes.
 	 */
-	private long subtract(long val, long subtract) {
+	private static long subtract(long val, long subtract) {
 		return (val - subtract) & MAX_VALUE;
 	}
 
